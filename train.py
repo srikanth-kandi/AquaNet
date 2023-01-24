@@ -15,7 +15,8 @@ def train(pre_trained=None):
 
     # create dir to save trained models and loss graphs
     reference = model_config['net_type'] + str(time.strftime("_%Y%m%d_%H%M%S"))
-    checkpoints_folder = os.path.join(model_config["output_dir"], 'checkpoints', reference)
+    checkpoints_folder = os.path.join(
+        model_config["output_dir"], '/content/AquaNet/checkpoints', reference)
     os.makedirs(checkpoints_folder, exist_ok=True)
 
     # save hyper parameters config
@@ -26,10 +27,12 @@ def train(pre_trained=None):
 
     # create data iterator
     train_data_set = DataGenerator(data_config)
-    iterator = DataLoader(dataset=train_data_set, batch_size=model_config['batch_size'], num_workers=model_config['num_workers'], pin_memory=True, shuffle=True, drop_last=True)
+    iterator = DataLoader(dataset=train_data_set, batch_size=model_config['batch_size'],
+                          num_workers=model_config['num_workers'], pin_memory=True, shuffle=True, drop_last=True)
 
     val_set = DataGenerator(data_config, mode='val')
-    val_set_iterator = DataLoader(dataset=val_set, batch_size=model_config['batch_size'], num_workers=model_config['num_workers'], pin_memory=True, shuffle=False, drop_last=True)
+    val_set_iterator = DataLoader(
+        dataset=val_set, batch_size=model_config['batch_size'], num_workers=model_config['num_workers'], pin_memory=True, shuffle=False, drop_last=True)
     # create model and loss
 
     model = AquaNet(model_config).to(device)
@@ -38,7 +41,8 @@ def train(pre_trained=None):
     else:
         loss = CrossEntropyLoss().to(device)
     # optimizer
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=model_config['learning_rate'])
+    optimizer = torch.optim.Adam(
+        params=model.parameters(), lr=model_config['learning_rate'])
     start_epoch = 0
     # load pre trained model
 
@@ -88,22 +92,28 @@ def train(pre_trained=None):
                 logits = logits.detach().cpu().numpy()
                 label = label.detach().cpu().numpy()
                 acc += utils.multiclass_classification_accuracy(logits, label)
-                top5_acc += utils.multiclass_classification_accuracy(logits, label, k=5)
-                top10_acc += utils.multiclass_classification_accuracy(logits, label, k=10)
+                top5_acc += utils.multiclass_classification_accuracy(
+                    logits, label, k=5)
+                top10_acc += utils.multiclass_classification_accuracy(
+                    logits, label, k=10)
 
         # average loss per epoch
         classification_loss[epoch] = c_loss/(i+1)
         # average accuracy per epoch
         train_accuracy[epoch] = acc/(i+1)
 
-        print("epoch = {}, average classification loss ={}".format(epoch, classification_loss[epoch]))
-        print("epoch = {}, Training accuracy ={}".format(epoch, train_accuracy[epoch]))
+        print("epoch = {}, average classification loss ={}".format(
+            epoch, classification_loss[epoch]))
+        print("epoch = {}, Training accuracy ={}".format(
+            epoch, train_accuracy[epoch]))
 
         if 'binary' not in data_config['train_metadata_path']:
             top5_train_accuracy[epoch] = top5_acc/(i+1)
             top10_train_accuracy[epoch] = top10_acc/(i+1)
-            print("epoch = {}, Top 5 Training accuracy ={}".format(epoch, top5_train_accuracy[epoch]))
-            print("epoch = {}, Top10 Training accuracy ={}".format(epoch, top10_train_accuracy[epoch]))
+            print("epoch = {}, Top 5 Training accuracy ={}".format(
+                epoch, top5_train_accuracy[epoch]))
+            print("epoch = {}, Top10 Training accuracy ={}".format(
+                epoch, top10_train_accuracy[epoch]))
 
         with torch.no_grad():
             val_acc = 0
@@ -122,54 +132,72 @@ def train(pre_trained=None):
                     pred = torch.round(logits)
                     pred = pred.detach().cpu().numpy()
                     label = label.detach().cpu().numpy()
-                    val_acc += utils.binary_classification_accuracy(pred, label)
+                    val_acc += utils.binary_classification_accuracy(
+                        pred, label)
                 else:
                     logits = logits.detach().cpu().numpy()
                     label = label.detach().cpu().numpy()
-                    val_acc += utils.multiclass_classification_accuracy(logits, label)
-                    top5_val_acc += utils.multiclass_classification_accuracy(logits, label, k=5)
-                    top10_val_acc += utils.multiclass_classification_accuracy(logits, label, k=10)
+                    val_acc += utils.multiclass_classification_accuracy(
+                        logits, label)
+                    top5_val_acc += utils.multiclass_classification_accuracy(
+                        logits, label, k=5)
+                    top10_val_acc += utils.multiclass_classification_accuracy(
+                        logits, label, k=10)
 
         val_accuracy[epoch] = val_acc/(i+1)
-        print("epoch = {},  Validation set accuracy ={}".format(epoch, val_accuracy[epoch]))
+        print("epoch = {},  Validation set accuracy ={}".format(
+            epoch, val_accuracy[epoch]))
         if 'binary' not in data_config['train_metadata_path']:
             top5_val_accuracy[epoch] = top5_val_acc/(i+1)
             top10_val_accuracy[epoch] = top10_val_acc/(i+1)
-            print("epoch = {},  Top 5 Validation set accuracy ={}".format(epoch, top5_val_accuracy[epoch]))
-            print("epoch = {},  Top 10 Validation set accuracy ={}".format(epoch, top10_val_accuracy[epoch]))
+            print("epoch = {},  Top 5 Validation set accuracy ={}".format(
+                epoch, top5_val_accuracy[epoch]))
+            print("epoch = {},  Top 10 Validation set accuracy ={}".format(
+                epoch, top10_val_accuracy[epoch]))
         print('***********************************************************')
 
         # plot accuracy curves and save model
-        plt.plot(range(1, len(train_accuracy)+1), train_accuracy, 'b-', label=" Train Accuracy")
-        plt.plot(range(1, len(val_accuracy)+1), val_accuracy, 'r-', label="Validation Accuracy")
+        plt.plot(range(1, len(train_accuracy)+1),
+                 train_accuracy, 'b-', label=" Train Accuracy")
+        plt.plot(range(1, len(val_accuracy)+1), val_accuracy,
+                 'r-', label="Validation Accuracy")
         plt.xlabel("epochs")
         plt.ylabel("accuracy")
         plt.legend(loc='best')
         plt.savefig(checkpoints_folder + "/accuracy.jpeg", bbox_inches="tight")
         plt.clf()
         if 'binary' not in data_config['train_metadata_path']:
-            plt.plot(range(1, len(top5_train_accuracy)+1), top5_train_accuracy, 'b-', label="Top 5 Train Accuracy")
-            plt.plot(range(1, len(top5_val_accuracy)+1), top5_val_accuracy, 'r-', label=" Top 5 Validation Accuracy")
+            plt.plot(range(1, len(top5_train_accuracy)+1),
+                     top5_train_accuracy, 'b-', label="Top 5 Train Accuracy")
+            plt.plot(range(1, len(top5_val_accuracy)+1),
+                     top5_val_accuracy, 'r-', label=" Top 5 Validation Accuracy")
             plt.xlabel("epochs")
             plt.ylabel("accuracy")
             plt.legend(loc='best')
-            plt.savefig(checkpoints_folder + "/top5_accuracy.jpeg", bbox_inches="tight")
+            plt.savefig(checkpoints_folder +
+                        "/top5_accuracy.jpeg", bbox_inches="tight")
             plt.clf()
 
-            plt.plot(range(1, len(top10_train_accuracy)+1), top10_train_accuracy, 'b-', label="Top 10 Train Accuracy")
-            plt.plot(range(1, len(top10_val_accuracy)+1), top10_val_accuracy, 'r-', label="Top 10 Validation Accuracy")
+            plt.plot(range(1, len(top10_train_accuracy)+1),
+                     top10_train_accuracy, 'b-', label="Top 10 Train Accuracy")
+            plt.plot(range(1, len(top10_val_accuracy)+1),
+                     top10_val_accuracy, 'r-', label="Top 10 Validation Accuracy")
             plt.xlabel("epochs")
             plt.ylabel("accuracy")
             plt.legend(loc='best')
-            plt.savefig(checkpoints_folder + "/top10_accuracy.jpeg", bbox_inches="tight")
+            plt.savefig(checkpoints_folder +
+                        "/top10_accuracy.jpeg", bbox_inches="tight")
             plt.clf()
 
-        if (epoch+1) % 10 == 0: # save every 10th epoch
-            net_save = {'net': model.state_dict(), 'opt': optimizer.state_dict(), 'epoch': epoch}
-            torch.save(net_save, checkpoints_folder + "/aquanet_epoch{}.pth".format(epoch))
+        if (epoch+1) % 10 == 0:  # save every 10th epoch
+            net_save = {'net': model.state_dict(
+            ), 'opt': optimizer.state_dict(), 'epoch': epoch}
+            torch.save(net_save, checkpoints_folder +
+                       "/aquanet_epoch{}.pth".format(epoch))
 
 
 if __name__ == '__main__':
     device = ('cuda:0' if torch.cuda.is_available() else 'cpu')
-    pre_trained_model_path = None    # provide path to .pth to continue training if you have checkpoint files.
+    # provide path to .pth to continue training if you have checkpoint files.
+    pre_trained_model_path = None
     train(pre_trained=pre_trained_model_path)
