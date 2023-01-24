@@ -18,7 +18,7 @@ def run_inference(model_dir, model_path):
 
     dataset = DataGenerator(data_config, mode='test')
     test_iterator = DataLoader(dataset=dataset, batch_size=1, num_workers=hp['num_workers'], pin_memory=True,
-                          shuffle=False, drop_last=True)
+                               shuffle=False, drop_last=True)
 
     with torch.no_grad():
         test_acc = 0
@@ -41,9 +41,12 @@ def run_inference(model_dir, model_path):
             else:
                 logits = logits.detach().cpu().numpy()
                 label = label.detach().cpu().numpy()
-                test_acc += utils.multiclass_classification_accuracy(logits, label)
-                top5_test_acc += utils.multiclass_classification_accuracy(logits, label, k=5)
-                top10_test_acc += utils.multiclass_classification_accuracy(logits, label, k=10)
+                test_acc += utils.multiclass_classification_accuracy(
+                    logits, label)
+                top5_test_acc += utils.multiclass_classification_accuracy(
+                    logits, label, k=5)
+                top10_test_acc += utils.multiclass_classification_accuracy(
+                    logits, label, k=10)
 
         print("Test set accuracy ={}".format(test_acc/(i+1)))
         if hp['n_classes'] != 1:
@@ -53,6 +56,7 @@ def run_inference(model_dir, model_path):
 
 if __name__ == '__main__':
     device = ('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model_dir = None  # "checkpoints/aquanet_20220208_141824/"
+    # "checkpoints/aquanet_20220208_141824/"
+    model_dir = '/content/AquaNet/checkpoints/aquanet_20230124_133933'
     model_path = None  # "aquanet_epoch49.pth"
     run_inference(model_dir, model_path)
