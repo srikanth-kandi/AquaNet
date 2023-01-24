@@ -3,7 +3,8 @@ import json
 
 
 def split_data_into_binary_and_single_word_answers(csv_file, split):
-    csv_data = pd.read_csv(csv_file, encoding='latin1', usecols=['file_name', 'QuestionText', 'answer' ])
+    csv_data = pd.read_csv(csv_file, encoding='latin1', usecols=[
+                           'file_name', 'QuestionText', 'answer'])
 
     csv_data['answer'] = csv_data['answer'].str.upper()
 
@@ -13,8 +14,8 @@ def split_data_into_binary_and_single_word_answers(csv_file, split):
 
     with open('/content/AquaNet/dataset/metadata/single_word_{}.csv'.format(split), 'wb') as f:
         data_single_word.to_csv(f, index=False)
-    
-    with open('metadata\\binary_{}.csv'.format(split), 'wb') as f:
+
+    with open('/content/AquaNet/dataset/metadata/binary_{}.csv'.format(split), 'wb') as f:
         data_binary.to_csv(f, index=False)
 
 
@@ -28,7 +29,8 @@ split_data_into_binary_and_single_word_answers(csv_file_test, 'test')
 
 # create word-index for single word answers
 csv_file = '/content/AquaNet/dataset/metadata/single_word_train.csv'
-csv_data = pd.read_csv(csv_file, encoding='latin1', usecols=['file_name', 'QuestionText', 'answer'])
+csv_data = pd.read_csv(csv_file, encoding='latin1', usecols=[
+                       'file_name', 'QuestionText', 'answer'])
 
 csv_data['answer'] = csv_data['answer'].str.upper()
 
